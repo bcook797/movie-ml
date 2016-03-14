@@ -27,8 +27,15 @@ def create_data_set(movie_ids, batch_size):
 
         time.sleep(0.25) # Rate Limit for Tmdb is 40 requests every 10 seconds
 
+    data = np.zeros((batch_size, len(attributes)))
+    attr_index = 0
+    for key, value in attributes.iteritems():
+        for id in value:
+            data[id][attr_index] = 1
+
+
     print "Time elapsed: " + str(round(time.time() - now, 2)) + " secs"
-    return np.zeros((batch_size, 5000)), labels
+    return data, labels
 
 def create_movie_vector(movie, index):
     print movie.title
@@ -59,6 +66,8 @@ def add_production_companies(companies, index):
 
 movies = read_data()
 train_movies, train_labels = create_data_set(movies, 100)
+print "Number of movies: " + str(len(train_movies))
+print "Number of attributes: " + str(len(train_movies[0]))
 # test_set = create_train(movies, 500)
 # validation_set = create_train(movies, 500)
 
