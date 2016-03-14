@@ -1,5 +1,6 @@
 import csv
 import time
+import sys
 import tmdbsimple as tmdb
 import numpy as np
 import tensorflow as tf
@@ -21,8 +22,8 @@ def create_data_set(movie_ids, batch_size):
     now = time.time()
     labels = np.zeros((batch_size, 11))
     for x in range(batch_size):
-        movie = tmdb.Movies(movie_ids[x])
         try:
+            movie = tmdb.Movies(movie_ids[x])
             response = movie.info(append_to_response='credits')
             create_movie_vector(movie, x)
             rating = int(round(movie.vote_average))
@@ -50,7 +51,7 @@ def create_movie_vector(movie, index):
 
 def add_genres(genres, index):
     for genre in genres:
-        genre_key = genre['name'] + str(80)
+        genre_key = genre['name'] + str(genre['id'])
         add_attribute(genre_key, index)
 
 def add_cast_and_crew(credits, index):
@@ -74,7 +75,7 @@ def add_attribute(key, index):
 
 # Read data and create train and test data sets
 movies = read_data()
-batch_size = 7000
+batch_size = int(sys.argv[1])
 set_cutoff = int(batch_size * .75)
 movie_data, movie_labels = create_data_set(movies, batch_size)
 num_of_attrs = len(movie_data[0])
