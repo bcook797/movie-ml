@@ -2,6 +2,7 @@ import csv
 import time
 import tmdbsimple as tmdb
 import numpy as np
+import tensorflow as tf
 
 tmdb.API_KEY = 'fbcbee8de7fe5d215b5f7a16969027d3'
 attributes = {}
@@ -12,7 +13,8 @@ def read_data():
         reader = csv.reader(infile)
         reader.next() # skip headers ['movieId', 'imdbId', 'tmdbId']
         for row in reader:
-            movie_ids.append(row[2])
+            if row[2] != "" and row[2] != None:
+                movie_ids.append(row[2])
     return movie_ids
 
 def create_data_set(movie_ids, batch_size):
@@ -65,10 +67,34 @@ def add_production_companies(companies, index):
             attributes[company_name].append(index)
 
 movies = read_data()
-train_movies, train_labels = create_data_set(movies, 100)
-print "Number of movies: " + str(len(train_movies))
-print "Number of attributes: " + str(len(train_movies[0]))
-# test_set = create_train(movies, 500)
-# validation_set = create_train(movies, 500)
+movie_data, movie_labels = create_data_set(movies, 500)
+num_of_attrs = len(movie_data[0])
+print "Number of movies: " + str(len(movie_data))
+print "Number of attributes: " + str(num_of_attrs)
 
+movie_train_data = movie_data[:400]
+movie_train_labels = movie_labels[:400]
 
+movie_test_data = movie_data[400:]
+movie_test_labels = movie_labels[400:]
+
+# Start Tensorflow Training
+x = tf.placeholder(tf.float32, [None, num_of_attrs])
+W = tf.Variable(tf.zeros([num_of_attrs, 11]))
+b = tf.Variable(tf.zeros([11]))
+y = tf.nn.softmax(tf.matmul(x, W) + b)
+
+y_ = tf.placeholder(tf.float32, [None, 11])
+cross_entropy = -tf.reduce_sum(y_*tf.log(y))
+train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
+init = tf.initialize_all_variables()
+
+sess = tf.Session()
+sess.run(init)
+
+sess.run(train_step, feed_dict={x: movie_train_data, y_: movie_train_labels})
+
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+print(sess.run(accuracy, feed_dict={x: movie_test_data, y_: movie_test_labels}))
