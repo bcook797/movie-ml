@@ -46,28 +46,31 @@ def create_movie_vector(movie, index):
     print str(index) + ": " + movie.title + " - " + str(movie.id)
     add_production_companies(movie.production_companies, index)
     add_cast_and_crew(movie.credits, index)
+    add_genres(movie.genres, index)
+
+def add_genres(genres, index):
+    for genre in genres:
+        genre_key = genre['name'] + str(80)
+        add_attribute(genre_key, index)
 
 def add_cast_and_crew(credits, index):
     for cast in credits['cast']:
         person_id = cast['id']
-        if person_id not in attributes:
-            attributes[person_id] = [index]
-        else:
-            attributes[person_id].append(index)
+        add_attribute(person_id, index)
     for crew in credits['crew']:
         person_id = crew['id']
-        if person_id not in attributes:
-            attributes[person_id] = [index]
-        else:
-            attributes[person_id].append(index)
+        add_attribute(person_id, index)
 
 def add_production_companies(companies, index):
     for company in companies:
         company_name = company['name']
-        if company_name not in attributes:
-            attributes[company_name] = [index]
-        else:
-            attributes[company_name].append(index)
+        add_attribute(company_name, index)
+
+def add_attribute(key, index):
+    if key not in attributes:
+        attributes[key] = [index]
+    else:
+        attributes[key].append(index)
 
 # Read data and create train and test data sets
 movies = read_data()
