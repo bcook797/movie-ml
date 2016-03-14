@@ -24,13 +24,13 @@ def create_data_set(movie_ids, batch_size):
         movie = tmdb.Movies(movie_ids[x])
         try:
             response = movie.info(append_to_response='credits')
+            create_movie_vector(movie, x)
+            rating = int(round(movie.vote_average))
+            labels[x, rating] = 1
+
+            time.sleep(0.25) # Rate Limit for Tmdb is 40 requests every 10 seconds
         except Exception as e:
             print e
-        create_movie_vector(movie, x)
-        rating = int(round(movie.vote_average))
-        labels[x, rating] = 1
-
-        time.sleep(0.25) # Rate Limit for Tmdb is 40 requests every 10 seconds
 
     data = np.zeros((batch_size, len(attributes)))
     attr_index = 0
@@ -71,16 +71,18 @@ def add_production_companies(companies, index):
 
 # Read data and create train and test data sets
 movies = read_data()
-movie_data, movie_labels = create_data_set(movies, 30000)
+batch_size = 7000
+set_cutoff = int(batch_size * .75)
+movie_data, movie_labels = create_data_set(movies, batch_size)
 num_of_attrs = len(movie_data[0])
 print "Number of movies: " + str(len(movie_data))
 print "Number of attributes: " + str(num_of_attrs)
 
-movie_train_data = movie_data[:25000]
-movie_train_labels = movie_labels[:25000]
+movie_train_data = movie_data[:set_cutoff]
+movie_train_labels = movie_labels[:set_cutoff]
 
-movie_test_data = movie_data[25000:]
-movie_test_labels = movie_labels[25000:]
+movie_test_data = movie_data[set_cutoff:]
+movie_test_labels = movie_labels[set_cutoff:]
 
 # Start Tensorflow Training
 x = tf.placeholder(tf.float32, [None, num_of_attrs])
