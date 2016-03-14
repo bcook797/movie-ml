@@ -24,8 +24,8 @@ def create_data_set(movie_ids, batch_size):
         movie = tmdb.Movies(movie_ids[x])
         try:
             response = movie.info(append_to_response='credits')
-        except:
-            print sys.exc_info()[0]
+        except Exception as e:
+            print e
         create_movie_vector(movie, x)
         rating = int(round(movie.vote_average))
         labels[x, rating] = 1
