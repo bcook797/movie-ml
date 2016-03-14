@@ -66,6 +66,7 @@ def add_production_companies(companies, index):
         else:
             attributes[company_name].append(index)
 
+# Read data and create train and test data sets
 movies = read_data()
 movie_data, movie_labels = create_data_set(movies, 500)
 num_of_attrs = len(movie_data[0])
