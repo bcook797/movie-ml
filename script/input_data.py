@@ -22,7 +22,10 @@ def create_data_set(movie_ids, batch_size):
     labels = np.zeros((batch_size, 11))
     for x in range(batch_size):
         movie = tmdb.Movies(movie_ids[x])
-        response = movie.info(append_to_response='credits')
+        try:
+            response = movie.info(append_to_response='credits')
+        except:
+            print sys.exc_info()[0]
         create_movie_vector(movie, x)
         rating = int(round(movie.vote_average))
         labels[x, rating] = 1
@@ -40,7 +43,7 @@ def create_data_set(movie_ids, batch_size):
     return data, labels
 
 def create_movie_vector(movie, index):
-    print movie.title
+    print str(index) + ": " + movie.title + " - " + str(movie.id)
     add_production_companies(movie.production_companies, index)
     add_cast_and_crew(movie.credits, index)
 
@@ -68,16 +71,16 @@ def add_production_companies(companies, index):
 
 # Read data and create train and test data sets
 movies = read_data()
-movie_data, movie_labels = create_data_set(movies, 500)
+movie_data, movie_labels = create_data_set(movies, 30000)
 num_of_attrs = len(movie_data[0])
 print "Number of movies: " + str(len(movie_data))
 print "Number of attributes: " + str(num_of_attrs)
 
-movie_train_data = movie_data[:400]
-movie_train_labels = movie_labels[:400]
+movie_train_data = movie_data[:25000]
+movie_train_labels = movie_labels[:25000]
 
-movie_test_data = movie_data[400:]
-movie_test_labels = movie_labels[400:]
+movie_test_data = movie_data[25000:]
+movie_test_labels = movie_labels[25000:]
 
 # Start Tensorflow Training
 x = tf.placeholder(tf.float32, [None, num_of_attrs])
