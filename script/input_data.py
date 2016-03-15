@@ -1,6 +1,7 @@
 import csv
 import time
 import sys
+import random
 import tmdbsimple as tmdb
 import numpy as np
 import tensorflow as tf
@@ -16,6 +17,7 @@ def read_data():
         for row in reader:
             if row[2] != "" and row[2] != None:
                 movie_ids.append(row[2])
+    random.shuffle(movie_ids)
     return movie_ids
 
 def create_data_set(movie_ids, batch_size):
