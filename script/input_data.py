@@ -115,7 +115,7 @@ for i in range(train_number):
     end = i * 100
     train_batch = movie_train_data[start:end]
     label_batch = movie_train_labels[start:end]
-    if i%100 == 0:
+    if i%100 == 0 and i > 0:
         train_accuracy = sess.run(accuracy, feed_dict={ x: train_batch, y_: label_batch})
         print("step %d, training accuracy %g"%(i, train_accuracy))
     sess.run(train_step, feed_dict={x: train_batch, y_: label_batch})
