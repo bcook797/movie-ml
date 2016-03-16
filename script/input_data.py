@@ -1,7 +1,7 @@
 import csv
 import time
 import sys
-import random
+import math
 import tmdbsimple as tmdb
 import numpy as np
 import tensorflow as tf
@@ -17,7 +17,7 @@ def read_data():
         for row in reader:
             if row[2] != "" and row[2] != None:
                 movie_ids.append(row[2])
-    random.shuffle(movie_ids)
+    np.random.shuffle(movie_ids)
     return movie_ids
 
 def create_data_set(movie_ids, batch_size):
@@ -81,6 +81,7 @@ batch_size = int(sys.argv[1])
 set_cutoff = int(batch_size * .75)
 movie_data, movie_labels = create_data_set(movies, batch_size)
 num_of_attrs = len(movie_data[0])
+print "-------Model Constructed-------"
 print "Number of movies: " + str(len(movie_data))
 print "Number of attributes: " + str(num_of_attrs)
 
@@ -90,7 +91,7 @@ movie_train_labels = movie_labels[:set_cutoff]
 movie_test_data = movie_data[set_cutoff:]
 movie_test_labels = movie_labels[set_cutoff:]
 
-# Start Tensorflow Training
+print "------Train Model--------"
 x = tf.placeholder(tf.float32, [None, num_of_attrs])
 W = tf.Variable(tf.zeros([num_of_attrs, 11]))
 b = tf.Variable(tf.zeros([11]))
@@ -104,9 +105,22 @@ init = tf.initialize_all_variables()
 sess = tf.Session()
 sess.run(init)
 
-sess.run(train_step, feed_dict={x: movie_train_data, y_: movie_train_labels})
-
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+# Crazy dynamic determination of the number of training steps involved
+train_number = int(math.ceil(batch_size / 100.0))
+start = 0
+for i in range(train_number):
+    end = i * 100
+    train_batch = movie_train_data[start:end]
+    label_batch = movie_train_labels[start:end]
+    if i%100 == 0:
+        train_accuracy = sess.run(accuracy, feed_dict={ x: train_batch, y_: label_batch})
+        print("step %d, training accuracy %g"%(i, train_accuracy))
+    sess.run(train_step, feed_dict={x: train_batch, y_: label_batch})
+    start = end
+
+
+print "-------Prediction Accuracy--------"
 print(sess.run(accuracy, feed_dict={x: movie_test_data, y_: movie_test_labels}))
