@@ -1,3 +1,10 @@
 tmdbsimple
-https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.1-cp27-none-linux_x86_64.whl
+# Linux TensorFlow Distribution
+# https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.1-cp27-none-linux_x86_64.whl
+
+# OSX TensorFlow Distribution
 # https://storage.googleapis.com/tensorflow/mac/tensorflow-0.7.1-cp27-none-any.whl
+
+# Windows TensorFlow Distribution
+#https://storage.googleapis.com/tensorflow/windows/gpu/tensorflow_gpu-0.12.1-cp35-cp35m-win_amd64.whl
+https://storage.googleapis.com/tensorflow/windows/cpu/tensorflow-0.12.1-cp35-cp35m-win_amd64.whl
