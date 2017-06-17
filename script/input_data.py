@@ -4,8 +4,10 @@ import sys
 import math
 import tmdbsimple as tmdb
 import numpy as np
+import os
 import tensorflow as tf
 
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2' # Look into building tensorflow from source to improve speed
 tmdb.API_KEY = 'fbcbee8de7fe5d215b5f7a16969027d3'
 attributes = {}
 
@@ -13,7 +15,7 @@ def read_data():
     movie_ids = []
     with open('data/links.csv') as infile:
         reader = csv.reader(infile)
-        reader.next() # skip headers ['movieId', 'imdbId', 'tmdbId']
+        next(reader) # skip headers ['movieId', 'imdbId', 'tmdbId']
         for row in reader:
             if row[2] != "" and row[2] != None:
                 movie_ids.append(row[2])
@@ -33,20 +35,20 @@ def create_data_set(movie_ids, batch_size):
 
             time.sleep(0.25) # Rate Limit for Tmdb is 40 requests every 10 seconds
         except Exception as e:
-            print e
+            print(e)
 
     data = np.zeros((batch_size, len(attributes)))
     attr_index = 0
-    for key, value in attributes.iteritems():
+    for key, value in iter(attributes.items()):
         for id in value:
             data[id][attr_index] = 1
 
 
-    print "Time elapsed: " + str(round(time.time() - now, 2)) + " secs"
+    print("Time elapsed: " + str(round(time.time() - now, 2)) + " secs")
     return data, labels
 
 def create_movie_vector(movie, index):
-    print str(index) + ": " + movie.title + " - " + str(movie.id)
+    print(str(index) + ": " + movie.title + " - " + str(movie.id))
     add_production_companies(movie.production_companies, index)
     add_cast_and_crew(movie.credits, index)
     add_genres(movie.genres, index)
@@ -81,9 +83,9 @@ batch_size = int(sys.argv[1])
 set_cutoff = int(batch_size * .75)
 movie_data, movie_labels = create_data_set(movies, batch_size)
 num_of_attrs = len(movie_data[0])
-print "-------Model Constructed-------"
-print "Number of movies: " + str(len(movie_data))
-print "Number of attributes: " + str(num_of_attrs)
+print("-------Model Constructed-------")
+print("Number of movies: " + str(len(movie_data)))
+print("Number of attributes: " + str(num_of_attrs))
 
 movie_train_data = movie_data[:set_cutoff]
 movie_train_labels = movie_labels[:set_cutoff]
@@ -91,7 +93,7 @@ movie_train_labels = movie_labels[:set_cutoff]
 movie_test_data = movie_data[set_cutoff:]
 movie_test_labels = movie_labels[set_cutoff:]
 
-print "------Train Model--------"
+print("------Train Model--------")
 x = tf.placeholder(tf.float32, [None, num_of_attrs])
 W = tf.Variable(tf.zeros([num_of_attrs, 11]))
 b = tf.Variable(tf.zeros([11]))
@@ -100,7 +102,7 @@ y = tf.nn.softmax(tf.matmul(x, W) + b)
 y_ = tf.placeholder(tf.float32, [None, 11])
 cross_entropy = -tf.reduce_sum(y_*tf.log(y))
 train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
-init = tf.initialize_all_variables()
+init = tf.global_variables_initializer()
 
 sess = tf.Session()
 sess.run(init)
@@ -122,5 +124,5 @@ for i in range(train_number):
     start = end
 
 
-print "-------Prediction Accuracy--------"
+print("-------Prediction Accuracy--------")
 print(sess.run(accuracy, feed_dict={x: movie_test_data, y_: movie_test_labels}))
